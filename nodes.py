@@ -2,12 +2,16 @@ from __future__ import annotations
 
 from typing import Any
 
+import torch
+
 from .utils import (
     build_generation_kwargs,
     comfy_image_to_pil_images,
-    load_qwen_model_class,
+    load_model_class,
     normalize_question,
+    pil_images_to_temp_paths,
     resolve_generation_config_path,
+    resolve_model_type,
     resolve_repo_path,
 )
 
@@ -31,6 +35,10 @@ class SenseNovaQwenLoader:
                         "default": "sensenova/SenseNova-SI-1.1-Qwen3-VL-8B",
                         "multiline": False,
                     },
+                ),
+                "model_type": (
+                    ["auto", "qwen", "internvl"],
+                    {"default": "auto"},
                 ),
                 "repo_path": (
                     "STRING",
@@ -64,34 +72,42 @@ class SenseNovaQwenLoader:
     def load_model(
         self,
         model_path: str,
+        model_type: str,
         repo_path: str,
         dtype: str,
         device_map: str,
         generation_config_path: str,
         force_reload: bool,
     ):
+        resolved_type = resolve_model_type(model_type, model_path)
         repo_root = resolve_repo_path(repo_path)
-        resolved_generation_config = resolve_generation_config_path(
-            repo_root, generation_config_path
-        )
+        resolved_generation_config = resolve_generation_config_path(repo_root, generation_config_path)
         cache_key = (
             str(repo_root),
             model_path,
+            resolved_type,
             dtype,
             device_map,
             resolved_generation_config or "",
         )
 
         if force_reload or cache_key not in _MODEL_CACHE:
-            model_class = load_qwen_model_class(repo_root)
-            model = model_class(
-                model_path=model_path,
-                generation_config=resolved_generation_config,
-                device_map=device_map,
-                dtype=dtype,
-            )
+            model_class = load_model_class(repo_root, resolved_type)
+            if resolved_type == "qwen":
+                model = model_class(
+                    model_path=model_path,
+                    generation_config=resolved_generation_config,
+                    device_map=device_map,
+                    dtype=dtype,
+                )
+            else:
+                model = model_class(
+                    model_path=model_path,
+                    generation_config=resolved_generation_config,
+                )
             _MODEL_CACHE[cache_key] = {
                 "model": model,
+                "model_type": resolved_type,
                 "repo_root": str(repo_root),
                 "model_path": model_path,
             }
@@ -160,12 +176,10 @@ class SenseNovaQwenGenerate:
         image=None,
     ):
         if not isinstance(model, dict) or "model" not in model:
-            raise ValueError(
-                "Expected a SENSENOVA_QWEN_MODEL handle from SenseNova Qwen Loader."
-            )
+            raise ValueError("Expected a SENSENOVA_QWEN_MODEL handle from SenseNova Qwen Loader.")
 
+        model_type = model.get("model_type", "qwen")
         pil_images = comfy_image_to_pil_images(image)
-        normalized_question = normalize_question(question, len(pil_images))
         generation_kwargs = build_generation_kwargs(
             max_new_tokens=max_new_tokens,
             temperature=temperature,
@@ -175,20 +189,69 @@ class SenseNovaQwenGenerate:
             do_sample=do_sample,
             extra_generation_kwargs_json=extra_generation_kwargs_json,
         )
-        response = model["model"].generate(
-            normalized_question,
-            images=pil_images or None,
-            **generation_kwargs,
-        )
+
+        if model_type == "qwen":
+            normalized_question = normalize_question(question, len(pil_images))
+            response = model["model"].generate(
+                normalized_question,
+                images=pil_images or None,
+                **generation_kwargs,
+            )
+        else:
+            # internvl expects file paths
+            if pil_images:
+                image_paths = pil_images_to_temp_paths(pil_images)
+            else:
+                image_paths = None
+            response = model["model"].generate(
+                question,
+                images=image_paths,
+                **generation_kwargs,
+            )
+
         return (response,)
+
+
+_MAX_IMAGE_INPUTS = 10
+
+
+class SenseNovaImageList:
+    """Aggregates up to 10 individual IMAGE inputs into a single batched IMAGE."""
+
+    CATEGORY = "SenseNova-SI"
+    FUNCTION = "aggregate"
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("images",)
+    SEARCH_ALIASES = ("SenseNova", "Image", "List", "Aggregate")
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        optional = {}
+        for i in range(1, _MAX_IMAGE_INPUTS + 1):
+            optional[f"image_{i}"] = ("IMAGE",)
+        return {"required": {}, "optional": optional}
+
+    def aggregate(self, **kwargs):
+        images = []
+        for i in range(1, _MAX_IMAGE_INPUTS + 1):
+            img = kwargs.get(f"image_{i}")
+            if img is not None:
+                images.append(img)
+
+        if not images:
+            raise ValueError("At least one image input must be connected.")
+
+        return (torch.cat(images, dim=0),)
 
 
 NODE_CLASS_MAPPINGS = {
     "SenseNovaQwenLoader": SenseNovaQwenLoader,
     "SenseNovaQwenGenerate": SenseNovaQwenGenerate,
+    "SenseNovaImageList": SenseNovaImageList,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "SenseNovaQwenLoader": "SenseNova Qwen Loader",
     "SenseNovaQwenGenerate": "SenseNova Qwen Generate",
+    "SenseNovaImageList": "SenseNova Image List",
 }

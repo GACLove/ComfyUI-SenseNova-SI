@@ -7,5 +7,5 @@ build/
 .env
 .venv/
 venv/
-deps/SenseNova-SI/
+# deps/SenseNova-SI/
 .DS_Store

@@ -49,9 +49,7 @@ def resolve_repo_path(repo_path: str = "") -> Path:
     )
 
 
-def resolve_generation_config_path(
-    repo_root: Path, generation_config_path: str = ""
-) -> str | None:
+def resolve_generation_config_path(repo_root: Path, generation_config_path: str = "") -> str | None:
     value = generation_config_path.strip()
     if not value:
         return None
@@ -62,7 +60,7 @@ def resolve_generation_config_path(
     return str(path.resolve())
 
 
-def load_qwen_model_class(repo_root: Path):
+def _ensure_repo_on_path(repo_root: Path):
     global _LOADED_REPO_ROOT
 
     repo_root = repo_root.resolve()
@@ -75,21 +73,42 @@ def load_qwen_model_class(repo_root: Path):
         importlib.invalidate_caches()
         _LOADED_REPO_ROOT = repo_root
 
-    module = importlib.import_module("sensenova_si.qwen")
-    return module.SenseNovaSIQwenModel
+
+_MODEL_TYPE_MAP = {
+    "qwen": ("sensenova_si.qwen", "SenseNovaSIQwenModel"),
+    "internvl": ("sensenova_si.internvl", "SenseNovaSIInternVLModel"),
+}
+
+
+def resolve_model_type(model_type: str, model_path: str) -> str:
+    if model_type != "auto":
+        return model_type
+    lower = model_path.lower()
+    if "qwen" in lower:
+        return "qwen"
+    if "internvl" in lower:
+        return "internvl"
+    return "qwen"
+
+
+def load_model_class(repo_root: Path, model_type: str):
+    _ensure_repo_on_path(repo_root)
+    module_name, class_name = _MODEL_TYPE_MAP[model_type]
+    module = importlib.import_module(module_name)
+    return getattr(module, class_name)
+
+
+def load_qwen_model_class(repo_root: Path):
+    return load_model_class(repo_root, "qwen")
 
 
 def comfy_image_to_pil_images(image: torch.Tensor | None) -> list[Image.Image]:
     if image is None:
         return []
     if image.ndim != 4:
-        raise ValueError(
-            f"Expected ComfyUI IMAGE tensor with shape [B, H, W, C], got {tuple(image.shape)}"
-        )
+        raise ValueError(f"Expected ComfyUI IMAGE tensor with shape [B, H, W, C], got {tuple(image.shape)}")
     if image.shape[-1] != 3:
-        raise ValueError(
-            f"Expected ComfyUI IMAGE tensor with 3 channels, got last dim {image.shape[-1]}"
-        )
+        raise ValueError(f"Expected ComfyUI IMAGE tensor with 3 channels, got last dim {image.shape[-1]}")
 
     pil_images = []
     image = image.detach().cpu().clamp(0, 1)
@@ -117,6 +136,22 @@ def normalize_question(question: str, image_count: int) -> str:
             f"Prompt contains {image_token_count} `{IMAGE_TOKEN}` token(s), but received {image_count} image(s)."
         )
     return question
+
+
+def pil_images_to_temp_paths(pil_images: list[Image.Image]) -> list[str]:
+    """Save PIL images to temporary files and return their paths.
+
+    Used for InternVL which expects file paths instead of PIL images.
+    """
+    import tempfile
+
+    paths = []
+    for i, img in enumerate(pil_images):
+        fd, path = tempfile.mkstemp(suffix=f"_{i}.png")
+        os.close(fd)
+        img.save(path)
+        paths.append(path)
+    return paths
 
 
 def build_generation_kwargs(
