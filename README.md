@@ -1,6 +1,6 @@
 # ComfyUI-SenseNova-SI
 
-ComfyUI custom node wrapper for `SenseNova-SI` Qwen-based VLM inference.
+ComfyUI custom node wrapper for [SenseNova-SI](https://github.com/OpenSenseNova/SenseNova-SI) VLM inference.
 
 ## Layout
 
@@ -13,7 +13,7 @@ ComfyUI/custom_nodes/ComfyUI-SenseNova-SI/
     SenseNova-SI/
 ```
 
-This custom node expects a source checkout of `SenseNova-SI`. By default it looks for:
+This custom node expects a source checkout of [SenseNova-SI](https://github.com/OpenSenseNova/SenseNova-SI). By default it looks for:
 
 1. `repo_path` from the loader node
 2. `SENSENOVA_SI_REPO` environment variable
@@ -22,16 +22,46 @@ This custom node expects a source checkout of `SenseNova-SI`. By default it look
 
 ## Install
 
-1. Place this directory in `ComfyUI/custom_nodes/`.
-2. Clone the upstream repo into `ComfyUI/custom_nodes/ComfyUI-SenseNova-SI/deps/SenseNova-SI`.
-3. Install the runtime dependencies from `requirements.txt` into the ComfyUI Python environment.
-4. Restart ComfyUI.
+1. Clone ComfyUI:
+
+   ```bash
+   git clone https://github.com/comfyanonymous/ComfyUI.git
+   cd ComfyUI
+   ```
+
+2. Clone this custom node:
+
+   ```bash
+   cd custom_nodes
+   git clone https://github.com/GACLove/ComfyUI-SenseNova-SI.git
+   ```
+
+3. Clone or link [SenseNova-SI](https://github.com/OpenSenseNova/SenseNova-SI) into `deps/`:
+
+   ```bash
+   cd ComfyUI-SenseNova-SI
+   git clone https://github.com/OpenSenseNova/SenseNova-SI.git deps/SenseNova-SI
+   ```
+
+4. Install dependencies:
+
+   ```bash
+   uv export --no-hashes > requirements.txt
+   pip install -r requirements.txt
+   ```
+
+5. Start ComfyUI:
+
+   ```bash
+   cd ../../..  # back to ComfyUI root
+   python main.py --listen 0.0.0.0 --port 8000 --cuda-device 0
+   ```
 
 ## Nodes
 
-### SenseNova Qwen Loader
+### SenseNova SI Loader
 
-Loads a `SenseNovaSIQwenModel` once and caches it by:
+Loads a SenseNova-SI model once and caches it by:
 
 - repo path
 - model path
@@ -41,7 +71,7 @@ Loads a `SenseNovaSIQwenModel` once and caches it by:
 
 Use `force_reload` when you need to rebuild the model object.
 
-### SenseNova Qwen Generate
+### SenseNova SI Generate
 
 Runs repeated inference against the loaded model handle.
 
@@ -52,8 +82,8 @@ Runs repeated inference against the loaded model handle.
 
 ## Notes
 
-- This wrapper only targets the Qwen path right now.
-- The upstream `SenseNova-SI` repo is used as source, not installed as a Python package.
+- Supports Qwen and InternVL model types (auto-detected from model path).
+- The upstream [SenseNova-SI](https://github.com/OpenSenseNova/SenseNova-SI) repo is used as source, not installed as a Python package.
 
 ## License
 
