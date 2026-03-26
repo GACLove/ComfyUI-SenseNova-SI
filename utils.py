@@ -50,6 +50,8 @@ def resolve_repo_path(repo_path: str = "") -> Path:
 
 
 def resolve_generation_config_path(repo_root: Path, generation_config_path: str = "") -> str | None:
+    if not isinstance(generation_config_path, str):
+        return None
     value = generation_config_path.strip()
     if not value:
         return None

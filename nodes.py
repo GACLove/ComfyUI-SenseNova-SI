@@ -94,17 +94,15 @@ class SenseNovaQwenLoader:
         if force_reload or cache_key not in _MODEL_CACHE:
             model_class = load_model_class(repo_root, resolved_type)
             if resolved_type == "qwen":
-                model = model_class(
-                    model_path=model_path,
-                    generation_config=resolved_generation_config,
-                    device_map=device_map,
-                    dtype=dtype,
-                )
+                kwargs = {"model_path": model_path, "device_map": device_map, "dtype": dtype}
+                if resolved_generation_config:
+                    kwargs["generation_config"] = resolved_generation_config
+                model = model_class(**kwargs)
             else:
-                model = model_class(
-                    model_path=model_path,
-                    generation_config=resolved_generation_config,
-                )
+                kwargs = {"model_path": model_path}
+                if resolved_generation_config:
+                    kwargs["generation_config"] = resolved_generation_config
+                model = model_class(**kwargs)
             _MODEL_CACHE[cache_key] = {
                 "model": model,
                 "model_type": resolved_type,
