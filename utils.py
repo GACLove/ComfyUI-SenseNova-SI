@@ -50,8 +50,8 @@ def resolve_repo_path(repo_path: str = "") -> Path:
 
 
 def resolve_generation_config_path(repo_root: Path, generation_config_path: str = "") -> str | None:
-    if not isinstance(generation_config_path, str):
-        return None
+    if not isinstance(generation_config_path, str):  # type: ignore[unreachable]
+        return None  # type: ignore[unreachable]
     value = generation_config_path.strip()
     if not value:
         return None
@@ -107,6 +107,8 @@ def load_qwen_model_class(repo_root: Path):
 def comfy_image_to_pil_images(image: torch.Tensor | None) -> list[Image.Image]:
     if image is None:
         return []
+    if not isinstance(image, torch.Tensor):
+        raise TypeError(f"Expected torch.Tensor, got {type(image).__name__}.")
     if image.ndim != 4:
         raise ValueError(f"Expected ComfyUI IMAGE tensor with shape [B, H, W, C], got {tuple(image.shape)}")
     if image.shape[-1] != 3:

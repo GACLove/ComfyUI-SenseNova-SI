@@ -18,12 +18,12 @@ from .utils import (
 _MODEL_CACHE: dict[tuple[str, str, str, str, str], dict[str, Any]] = {}
 
 
-class SenseNovaQwenLoader:
+class SenseNovaSILoader:
     CATEGORY = "SenseNova-SI"
     FUNCTION = "load_model"
-    RETURN_TYPES = ("SENSENOVA_QWEN_MODEL",)
+    RETURN_TYPES = ("SENSENOVA_SI_MODEL",)
     RETURN_NAMES = ("model",)
-    SEARCH_ALIASES = ("SenseNova", "Qwen", "Loader")
+    SEARCH_ALIASES = ("SenseNova", "SI", "Loader")
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -113,18 +113,18 @@ class SenseNovaQwenLoader:
         return (_MODEL_CACHE[cache_key],)
 
 
-class SenseNovaQwenGenerate:
+class SenseNovaSIGenerate:
     CATEGORY = "SenseNova-SI"
     FUNCTION = "generate"
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text",)
-    SEARCH_ALIASES = ("SenseNova", "Qwen", "Generate")
+    SEARCH_ALIASES = ("SenseNova", "SI", "Generate")
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "model": ("SENSENOVA_QWEN_MODEL", {"forceInput": True}),
+                "model": ("SENSENOVA_SI_MODEL", {"forceInput": True}),
                 "question": (
                     "STRING",
                     {
@@ -174,7 +174,7 @@ class SenseNovaQwenGenerate:
         image=None,
     ):
         if not isinstance(model, dict) or "model" not in model:
-            raise ValueError("Expected a SENSENOVA_QWEN_MODEL handle from SenseNova Qwen Loader.")
+            raise ValueError("Expected a SENSENOVA_SI_MODEL handle from SenseNova SI Loader.")
 
         model_type = model.get("model_type", "qwen")
         pil_images = comfy_image_to_pil_images(image)
@@ -213,7 +213,7 @@ class SenseNovaQwenGenerate:
 _MAX_IMAGE_INPUTS = 10
 
 
-class SenseNovaImageList:
+class SenseNovaSIImageList:
     """Aggregates up to 10 individual IMAGE inputs into a single batched IMAGE."""
 
     CATEGORY = "SenseNova-SI"
@@ -243,13 +243,13 @@ class SenseNovaImageList:
 
 
 NODE_CLASS_MAPPINGS = {
-    "SenseNovaQwenLoader": SenseNovaQwenLoader,
-    "SenseNovaQwenGenerate": SenseNovaQwenGenerate,
-    "SenseNovaImageList": SenseNovaImageList,
+    "SenseNovaSILoader": SenseNovaSILoader,
+    "SenseNovaSIGenerate": SenseNovaSIGenerate,
+    "SenseNovaSIImageList": SenseNovaSIImageList,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SenseNovaQwenLoader": "SenseNova Qwen Loader",
-    "SenseNovaQwenGenerate": "SenseNova Qwen Generate",
-    "SenseNovaImageList": "SenseNova Image List",
+    "SenseNovaSILoader": "SenseNova SI Loader",
+    "SenseNovaSIGenerate": "SenseNova SI Generate",
+    "SenseNovaSIImageList": "SenseNova Image List",
 }
