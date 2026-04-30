@@ -1,0 +1,400 @@
+{
+  "id": "48a2c906-12d6-4b86-8063-1fb10a435931",
+  "revision": 0,
+  "last_node_id": 21,
+  "last_link_id": 23,
+  "nodes": [
+    {
+      "id": 18,
+      "type": "LoadImage",
+      "pos": [
+        45.70391082763672,
+        -698.6660766601562
+      ],
+      "size": [
+        270,
+        314
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            20
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "Q2_1.png",
+        "image"
+      ]
+    },
+    {
+      "id": 20,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -104.13505554199219,
+        -975.2262573242188
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "If the landscape painting is on the east side of the bedroom, where is the window located in the bedroom?\\nOptions: A. North side, B. South side, C. West side, D. East side\\nAnswer with the option's letter from the given choices directly. Enclose the option's letter within ``."
+      ]
+    },
+    {
+      "id": 17,
+      "type": "SenseNovaSIImageList",
+      "pos": [
+        597.968017578125,
+        -585.6445922851562
+      ],
+      "size": [
+        180.75448608398438,
+        206
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 20
+        },
+        {
+          "name": "image_2",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 21
+        },
+        {
+          "name": "image_3",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_4",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_5",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_6",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_7",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_8",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_9",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "image_10",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SenseNovaSIImageList"
+      }
+    },
+    {
+      "id": 15,
+      "type": "SenseNovaSILoader",
+      "pos": [
+        430.14837646484375,
+        -1200.4130859375
+      ],
+      "size": [
+        289.4375,
+        202
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "SENSENOVA_SI_MODEL",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SenseNovaSILoader"
+      },
+      "widgets_values": [
+        "/data/SenseNova-SI-1.3-Qwen3-VL-8B",
+        "auto",
+        "",
+        "auto",
+        "auto",
+        "",
+        false
+      ]
+    },
+    {
+      "id": 16,
+      "type": "SenseNovaSIGenerate",
+      "pos": [
+        1151.945068359375,
+        -667.8421020507812
+      ],
+      "size": [
+        400,
+        306
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "SENSENOVA_SI_MODEL",
+          "link": 18
+        },
+        {
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 19
+        },
+        {
+          "name": "question",
+          "type": "STRING",
+          "widget": {
+            "name": "question"
+          },
+          "link": 22
+        }
+      ],
+      "outputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            23
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SenseNovaSIGenerate"
+      },
+      "widgets_values": [
+        "",
+        8192,
+        0,
+        1,
+        1,
+        1,
+        false,
+        ""
+      ]
+    },
+    {
+      "id": 21,
+      "type": "easy showAnything",
+      "pos": [
+        1622.0113525390625,
+        -664.4171752929688
+      ],
+      "size": [
+        140,
+        76
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "anything",
+          "shape": 7,
+          "type": "*",
+          "link": 23
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "*",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "easy showAnything"
+      },
+      "widgets_values": [
+        "C. West side"
+      ]
+    },
+    {
+      "id": 19,
+      "type": "LoadImage",
+      "pos": [
+        44.84769058227539,
+        -321.0714416503906
+      ],
+      "size": [
+        270,
+        314
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            21
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "Q2_2.png",
+        "image"
+      ]
+    }
+  ],
+  "links": [
+    [
+      18,
+      15,
+      0,
+      16,
+      0,
+      "SENSENOVA_SI_MODEL"
+    ],
+    [
+      19,
+      17,
+      0,
+      16,
+      1,
+      "IMAGE"
+    ],
+    [
+      20,
+      18,
+      0,
+      17,
+      0,
+      "IMAGE"
+    ],
+    [
+      21,
+      19,
+      0,
+      17,
+      1,
+      "IMAGE"
+    ],
+    [
+      22,
+      20,
+      0,
+      16,
+      2,
+      "STRING"
+    ],
+    [
+      23,
+      16,
+      0,
+      21,
+      0,
+      "*"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7786127834769961,
+      "offset": [
+        668.3864323816002,
+        1376.7952885990692
+      ]
+    },
+    "frontendVersion": "1.23.4",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
